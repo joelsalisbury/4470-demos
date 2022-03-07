@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>A Contact List built with VueJS</title>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+        <style>
+
+        </style>
+    </head>
+    <body>
+
+        <div id="app">        
+            <h1>{{app_title}}</h1>
+            <h2>{{app_subhead}}</h2>
+            
+            <ul>
+               <li v-for="item in contacts" :key="item.email">
+                   <a :href="'mailto:' + item.email">{{item.first}} {{item.last}}</a>: {{item.phone}} ({{item.notes}})
+               </li> 
+            </ul>
+
+
+            <div>
+                <input v-model="new_contact.first" type="text" placeholder="First Name">
+                <input v-model="new_contact.last" type="text" placeholder="Last Name">
+                <input v-model="new_contact.email" type="email" placeholder="Email">
+                <input v-model="new_contact.phone" type="tel" placeholder="Phone">
+                <input v-model="new_contact.notes" type="text" placeholder="Notes">
+                <button @click="newContact();">Save New Contact</button>
+            </div>
+        </div>
+
+        <script>
+            var app = new Vue({
+                el: '#app',
+                data: function() {
+                    return {
+                        app_title: 'My Vue Contact List',
+                        app_subhead: 'Using Vue to Manipulate the DOM',
+                        new_contact: {
+                            first:"First",
+                            last:"Last",
+                            phone:"000-000-0000",
+                            email:"email@uconn.edu",
+                            notes:"These are some notes."
+                        },
+                        contacts: [
+                            {
+                                first:"Joel",
+                                last:"Salisbury",
+                                phone:"444-444-4444",
+                                email:"joel@uconn.edu",
+                                notes:"These are some notes."
+                            },
+                            {
+                                first:"Dan",
+                                last:"Collette",
+                                phone:"444-444-4444",
+                                email:"danc@uconn.edu",
+                                notes:"These are some notes on Dan."
+                            },                            
+                        ]
+                    }
+                },
+                methods: {
+                   newContact: function() {
+                       this.contacts.push(
+                        JSON.parse(JSON.stringify(this.new_contact))
+                       );
+                   }
+                }
+            })
+        </script>
+    </body>
+</html> 
