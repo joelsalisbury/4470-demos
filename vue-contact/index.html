@@ -3,6 +3,32 @@
     <head>
         <title>A Contact List built with VueJS</title>
         <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+        
+        <!-- Source Firebase Library from the Google CDN -->
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+        <!-- Source Cloud Firestore from the Google CDN -->
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+        <script>
+            /** Grab the Firebase Config stuff from the Project Dashboard in Firebase **/
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhFC3qEEvk4wKGKXNned--UNuHSvASe4U",
+                authDomain: "s22-4470-demo.firebaseapp.com",
+                projectId: "s22-4470-demo",
+                storageBucket: "s22-4470-demo.appspot.com",
+                messagingSenderId: "645089891558",
+                appId: "1:645089891558:web:f7903806734471cdfb1727"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+
+            /** Make sure to initilize Cloud Firestore **/
+            var db = firebase.firestore();
+
+           
+
+        </script>
         <style>
 
         </style>
@@ -14,8 +40,10 @@
             <h2>{{app_subhead}}</h2>
             
             <ul>
-               <li v-for="item in contacts" :key="item.email">
-                   <a :href="'mailto:' + item.email">{{item.first}} {{item.last}}</a>: {{item.phone}} ({{item.notes}})
+               <li v-for="item in contacts" :key="item.id">
+                   <a :href="'mailto:' + item.email">{{item.first}} {{item.last}}</a>: 
+                   <input type="text" @change="updateContact(item)" v-model="item.phone"> 
+                   ({{item.notes}})
                </li> 
             </ul>
 
@@ -45,29 +73,78 @@
                             notes:"These are some notes."
                         },
                         contacts: [
-                            {
-                                first:"Joel",
-                                last:"Salisbury",
-                                phone:"444-444-4444",
-                                email:"joel@uconn.edu",
-                                notes:"These are some notes."
-                            },
-                            {
-                                first:"Dan",
-                                last:"Collette",
-                                phone:"444-444-4444",
-                                email:"danc@uconn.edu",
-                                notes:"These are some notes on Dan."
-                            },                            
+                                         
                         ]
                     }
                 },
                 methods: {
                    newContact: function() {
-                       this.contacts.push(
-                        JSON.parse(JSON.stringify(this.new_contact))
-                       );
+                       // Add a new document in collection "contacts"
+                        db.collection("contacts").add({
+                            firstname: this.new_contact.first,
+                            lastname: this.new_contact.last,
+                            email: this.new_contact.email,
+                            phone:this.new_contact.phone,
+                            notes:this.new_contact.notes
+                        })
+                        .then(() => {
+                            console.log("Document successfully written!");
+                        })
+                        .catch((error) => {
+                            console.error("Error writing document: ", error);
+                        });
+                   },
+
+                   getContactsFromFirestore(orderBy){
+                    // get contacts from firestore, ordered by %orderBy%
+
+                    db.collection("contacts").orderBy(orderBy)
+                    .onSnapshot((querySnapshot) => {
+                        this.contacts = [];
+                        querySnapshot.forEach((doc) => {
+                            this.contacts.push({
+                                first:doc.data().firstname,
+                                last:doc.data().lastname,
+                                phone:doc.data().phone,
+                                email:doc.data().email,
+                                notes:doc.data().notes,
+                                id:doc.id
+                            });
+                        });
+                        
+                    });
+
+
+                   },
+
+                   updateContact(data){
+                    // update the contact found at %data.id% with %data%
+                    
+                    let docId = data.id;
+
+                    var docRef = db.collection("contacts").doc(docId);
+
+                 
+                    return docRef.update({
+                        firstname:data.first,
+                        lastname:data.last,
+                        phone:data.phone,
+                        email:data.email,
+                        notes:data.notes
+                    })
+                    .then(() => {
+                        console.log("Document successfully updated!");
+                    })
+                    .catch((error) => {
+                        // The document probably doesn't exist.
+                        console.error("Error updating document: ", error);
+                    });
+
                    }
+                },
+
+                mounted() {
+                    this.getContactsFromFirestore("lastname");
                 }
             })
         </script>
